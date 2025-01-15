@@ -33,19 +33,28 @@ def get_current_temp():
 # Эндпоинт для сохранения данных от ESP32
 @app.route('/data', methods=['POST'])
 def receive_data():
-    data = request.get_json()
-    if data and 'temperature' in data:
-        now = datetime.utcnow()
-        temp_record = TemperatureData(
-            year=now.year,
-            month=now.month,
-            day=now.day,
-            temperature=data['temperature']
-        )
-        db.session.add(temp_record)
-        db.session.commit()
-        return jsonify({"message": "Temperature saved successfully"}), 201
-    return jsonify({"error": "Invalid data"}), 400
+    try:
+        data = request.get_json()
+        if data and 'temperature' in data:
+            temperature = data['temperature']
+            if not isinstance(temperature, (int, float)) or not (-50 <= temperature <= 150):
+                return jsonify({"error": "Invalid temperature value"}), 400
+            
+            now = datetime.utcnow()
+            temp_record = TemperatureData(
+                year=now.year,
+                month=now.month,
+                day=now.day,
+                temperature=temperature
+            )
+            db.session.add(temp_record)
+            db.session.commit()
+            app.logger.info(f"Temperature {temperature} saved successfully at {now}")
+            return jsonify({"message": "Temperature saved successfully"}), 201
+        return jsonify({"error": "Invalid data"}), 400
+    except Exception as e:
+        app.logger.error(f"Error processing data: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @app.route('/stats/<int:year>/<int:month>', methods=['GET'])
 def get_monthly_stats(year, month):
