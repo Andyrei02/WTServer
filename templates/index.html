@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temperature esp32</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+  <div class="container">
+    <h1>Текущая температура</h1>
+    <div class="temperature" id="temperature">-- °C</div>
+    <div class="timestamp" id="timestamp">Обновление...</div>
+  </div>
+
+  <script>
+    async function fetchTemperature() {
+      try {
+        const response = await fetch('/current_temp');
+        const data = await response.json();
+        const tempElement = document.getElementById('temperature');
+        const timeElement = document.getElementById('timestamp');
+
+        if (data.temperature !== null) {
+          tempElement.textContent = `${data.temperature} °C`;
+          timeElement.textContent = `Последнее обновление: ${new Date(data.timestamp).toLocaleString()}`;
+        } else {
+          tempElement.textContent = '-- °C';
+          timeElement.textContent = 'Нет данных';
+        }
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error);
+      }
+    }
+
+    // Обновлять температуру каждые 5 секунд
+    setInterval(fetchTemperature, 5000);
+    fetchTemperature();
+  </script>
+</body>
+</html>
