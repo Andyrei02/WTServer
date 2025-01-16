@@ -12,6 +12,11 @@
     <h1>Текущая температура</h1>
     <div class="temperature" id="temperature">-- °C</div>
     <div class="timestamp" id="timestamp">Обновление...</div>
+  
+    <div class="button-container">
+      <a href="{{ url_for('history') }}" class="button">View history</a>
+      <a href="{{ url_for('graph') }}" class="button">View graph</a>
+    </div>
   </div>
 
   <script>
