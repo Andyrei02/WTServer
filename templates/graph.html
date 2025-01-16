@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/graph.css') }}">
+</head>
+
+<body>
+    <h1>Temperature Graph</h1>
+    <div class="tabs">
+        <div class="tab active" onclick="showTab('today')">Today</div>
+        <div class="tab" onclick="showTab('month')">Month</div>
+        <div class="tab" onclick="showTab('year')">Year</div>
+    </div>
+    <div id="today" class="tab-content">
+        <canvas id="todayChart"></canvas>
+    </div>
+    <div id="month" class="tab-content" style="display: none;">
+        <canvas id="monthChart"></canvas>
+    </div>
+    <div id="year" class="tab-content" style="display: none;">
+        <canvas id="yearChart"></canvas>
+    </div>
+
+    <script>
+        // Табы
+        function showTab(tabId) {
+            // Скрыть все графики
+            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
+            // Показать выбранный график
+            document.querySelector(`#${tabId}`).style.display = 'block';
+            // Обновить активную вкладку
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+    
+        // Данные для графика Today
+        const todayLabels = {{ graph_data['today']['labels'] | tojson }};
+        const todayTemperatures = {{ graph_data['today']['temperatures'] | tojson }};
+        const todayCtx = document.getElementById('todayChart').getContext('2d');
+        new Chart(todayCtx, {
+            type: 'line',
+            data: {
+                labels: todayLabels,
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: todayTemperatures,
+                    borderColor: '#5dade2',
+                    backgroundColor: 'rgba(93, 173, 226, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true }
+                }
+            }
+        });
+    
+        // Данные для графика Month
+        const monthLabels = {{ graph_data['month']['labels'] | tojson }};
+        const monthTemperatures = {{ graph_data['month']['temperatures'] | tojson }};
+        const monthCtx = document.getElementById('monthChart').getContext('2d');
+        new Chart(monthCtx, {
+            type: 'line',
+            data: {
+                labels: monthLabels,
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: monthTemperatures,
+                    borderColor: '#76c7c0',
+                    backgroundColor: 'rgba(118, 199, 192, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true }
+                }
+            }
+        });
+    
+        // Данные для графика Year
+        const yearLabels = {{ graph_data['year']['labels'] | tojson }};
+        const yearTemperatures = {{ graph_data['year']['temperatures'] | tojson }};
+        const yearCtx = document.getElementById('yearChart').getContext('2d');
+        new Chart(yearCtx, {
+            type: 'line',
+            data: {
+                labels: yearLabels,
+                datasets: [{
+                    label: 'Temperature (°C)',
+                    data: yearTemperatures,
+                    borderColor: '#f4b400',
+                    backgroundColor: 'rgba(244, 180, 0, 0.2)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true }
+                }
+            }
+        });
+    </script>    
+</body>
+</html>

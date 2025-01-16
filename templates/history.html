@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Temperature History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/history.css') }}">
+</head>
+<body>
+    <h1>Temperature History</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Year</th>
+                <th>Month</th>
+                <th>Day</th>
+                <th>Temperature (&deg;C)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entry in data %}
+            <tr>
+                <td>{{ entry.timestamp }}</td>
+                <td>{{ entry.year }}</td>
+                <td>{{ entry.month }}</td>
+                <td>{{ entry.day }}</td>
+                <td>{{ entry.temperature }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

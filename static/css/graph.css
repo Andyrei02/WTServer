@@ -1,0 +1,32 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    padding: 20px;
+}
+h1 {
+    text-align: center;
+    color: #5dade2;
+}
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+.tab {
+    padding: 10px 20px;
+    margin: 0 5px;
+    background-color: #5dade2;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.tab.active {
+    background-color: #2e86c1;
+}
+canvas {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

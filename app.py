@@ -62,6 +62,53 @@ def get_monthly_stats(year, month):
     response = [{"day": t.day, "temperature": t.temperature} for t in data]
     return jsonify(response)
 
+@app.route('/history')
+def history():
+    # Извлечь все данные из базы данных, отсортированные по времени
+    data = TemperatureData.query.order_by(TemperatureData.timestamp.desc()).all()
+
+    # Передать данные в шаблон
+    return render_template('history.html', data=data)
+
+@app.route('/graph')
+def graph():
+    # Данные для сегодняшнего графика
+    today = datetime.utcnow().date()
+    today_data = TemperatureData.query.filter(
+        TemperatureData.year == today.year,
+        TemperatureData.month == today.month,
+        TemperatureData.day == today.day
+    ).all()
+
+    # Данные за текущий месяц
+    month_data = TemperatureData.query.filter(
+        TemperatureData.year == today.year,
+        TemperatureData.month == today.month
+    ).all()
+
+    # Данные за текущий год
+    year_data = TemperatureData.query.filter(
+        TemperatureData.year == today.year
+    ).all()
+
+    # Преобразование данных для графиков
+    graph_data = {
+        "today": {
+            "labels": [entry.timestamp.strftime('%H:%M:%S') for entry in today_data],
+            "temperatures": [entry.temperature for entry in today_data]
+        },
+        "month": {
+            "labels": [entry.timestamp.strftime('%d %H:%M') for entry in month_data],
+            "temperatures": [entry.temperature for entry in month_data]
+        },
+        "year": {
+            "labels": [entry.timestamp.strftime('%m-%d') for entry in year_data],
+            "temperatures": [entry.temperature for entry in year_data]
+        }
+    }
+
+    return render_template('graph.html', graph_data=graph_data)
+
 # Основная страница для отображения температуры
 @app.route('/')
 def index():
