@@ -10,8 +10,9 @@
 <body>
   <div class="container">
     <h1>Текущая температура</h1>
-    <div class="temperature" id="temperature">-- °C</div>
-    <div class="timestamp" id="timestamp">Обновление...</div>
+    <div class="skills-container">
+      <div class="circular-progress html"></div>
+    </div>
   
     <div class="button-container">
       <a href="{{ url_for('history') }}" class="button">View history</a>
@@ -20,26 +21,39 @@
   </div>
 
   <script>
+    function updateIndicator(selector, percent, skill) {
+      const element = document.querySelector(selector);
+  
+      if (!element) {
+      console.error(`Элемент ${selector} не найден`);
+      return;
+      }
+  
+      // Вычисляем угол для градиента
+      const angle = (percent / 100) * 180;
+  
+      // Обновляем CSS-переменные
+      element.style.setProperty('--progress-percent', `"${percent}°C"`);
+      element.style.setProperty('--progress-skill', `"${skill}"`);
+  
+      // Обновляем фон с углом поворота
+      element.style.background = `linear-gradient(${angle}deg, #f1642c 50%, rgba(241, 100, 44, 0.3) 50%)`;
+    }
+    
     async function fetchTemperature() {
       try {
-        const response = await fetch('/current_temp');
-        const data = await response.json();
-        const tempElement = document.getElementById('temperature');
-        const timeElement = document.getElementById('timestamp');
+          const response = await fetch('/current_temp');
+          const data = await response.json();
 
-        if (data.temperature !== null) {
-          tempElement.textContent = `${data.temperature} °C`;
-          timeElement.textContent = `Последнее обновление: ${new Date(data.timestamp).toLocaleString()}`;
-        } else {
-          tempElement.textContent = '-- °C';
-          timeElement.textContent = 'Нет данных';
-        }
+          if (data.temperature !== null) {
+            updateIndicator('.circular-progress.html', data.temperature, data.timestamp); // Обновление индикатора
+          } else {
+              console.log('Нет данных для температуры');
+          }
       } catch (error) {
-        console.error('Ошибка загрузки данных:', error);
+          console.error('Ошибка загрузки температуры:', error);
       }
     }
-
-    // Обновлять температуру каждые 5 секунд
     setInterval(fetchTemperature, 5000);
     fetchTemperature();
   </script>
