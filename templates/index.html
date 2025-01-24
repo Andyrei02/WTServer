@@ -5,14 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Temperature esp32</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
   <div class="container">
     <h1>Текущая температура</h1>
-    <div class="skills-container">
-      <div class="circular-progress html"></div>
-    </div>
+    <canvas id="temperatureChart" width="200" height="200"></canvas>
   
     <div class="button-container">
       <a href="{{ url_for('history') }}" class="button">View history</a>
@@ -20,42 +19,7 @@
     </div>
   </div>
 
-  <script>
-    function updateIndicator(selector, percent, skill) {
-      const element = document.querySelector(selector);
-  
-      if (!element) {
-      console.error(`Элемент ${selector} не найден`);
-      return;
-      }
-  
-      // Вычисляем угол для градиента
-      const angle = (percent / 100) * 180;
-  
-      // Обновляем CSS-переменные
-      element.style.setProperty('--progress-percent', `"${percent}°C"`);
-      element.style.setProperty('--progress-skill', `"${skill}"`);
-  
-      // Обновляем фон с углом поворота
-      element.style.background = `linear-gradient(${angle}deg, #f1642c 50%, rgba(241, 100, 44, 0.3) 50%)`;
-    }
-    
-    async function fetchTemperature() {
-      try {
-          const response = await fetch('/current_temp');
-          const data = await response.json();
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 
-          if (data.temperature !== null) {
-            updateIndicator('.circular-progress.html', data.temperature, data.timestamp); // Обновление индикатора
-          } else {
-              console.log('Нет данных для температуры');
-          }
-      } catch (error) {
-          console.error('Ошибка загрузки температуры:', error);
-      }
-    }
-    setInterval(fetchTemperature, 5000);
-    fetchTemperature();
-  </script>
 </body>
 </html>
