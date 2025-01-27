@@ -12,11 +12,12 @@ const temperatureChart = new Chart(ctx, {
   data: {
     datasets: [
       {
-        data: [0, 100], // Температура и оставшаяся часть
-        backgroundColor: [gradient, 'rgba(0, 0, 0, 0)'], // Градиент и прозрачный фон
+        data: [0, 100, '--/--/--'], // Температура и оставшаяся часть
+        backgroundColor: [gradient, 'rgba(100, 100, 100, 100)'], // Градиент и прозрачный фон
         borderWidth: 0, // Без обводки
-        cutout: '80%', // Размер выреза в центре
-        borderRadius: 15, // Закругленные края
+        borderColor: 'rgb(128, 128, 128)',
+        cutout: '90%', // Размер выреза в центре
+        borderRadius: 10, // Закругленные края
       },
     ],
   },
@@ -39,16 +40,16 @@ const temperatureChart = new Chart(ctx, {
         const { height } = chart;
         const { ctx } = chart;
         const temperature = chart.data.datasets[0].data[0]; // Текущая температура
-        const timestamp = new Date().toLocaleTimeString(); // Время обновления
+        const timestamp = chart.data.datasets[0].data[2]; // Время обновления
 
         ctx.save();
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = 'bold 30px Arial';
         ctx.fillStyle = '#fff';
-        ctx.fillText(`${temperature}°C`, width / 2, height / 2 + 25); // Температура
+        ctx.fillText(`${temperature}°`, width / 2, height / 2 + 25); // Температура
 
-        ctx.font = '15px Arial';
+        ctx.font = '14px Arial';
         ctx.fillText(timestamp, width / 2, height / 2 + 65); // Время
         ctx.restore();
       },
@@ -57,9 +58,9 @@ const temperatureChart = new Chart(ctx, {
 });
 
 // Обновление температуры
-function updateTemperature(temperature) {
+function updateTemperature(temperature, timestamp) {
   const percentage = Math.min(Math.max(temperature, 0), 100);
-  temperatureChart.data.datasets[0].data = [percentage, 100 - percentage];
+  temperatureChart.data.datasets[0].data = [percentage, 100 - percentage, timestamp];
   temperatureChart.update();
 }
 
@@ -69,7 +70,7 @@ async function fetchTemperature() {
         const data = await response.json();
 
         if (data.temperature !== null) {
-            updateTemperature(data.temperature); // Обновление индикатора
+            updateTemperature(data.temperature, data.timestamp); // Обновление индикатора
         } else {
             console.log('Нет данных для температуры');
         }
@@ -78,4 +79,4 @@ async function fetchTemperature() {
     }
 }
 
-setInterval(fetchTemperature, 5000);
+setInterval(fetchTemperature, 2000);

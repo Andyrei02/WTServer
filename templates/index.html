@@ -9,14 +9,38 @@
 </head>
 
 <body>
-  <div class="container">
-    <h1>Текущая температура</h1>
-    <canvas id="temperatureChart" width="200" height="200"></canvas>
-  
-    <div class="button-container">
-      <a href="{{ url_for('history') }}" class="button">View history</a>
-      <a href="{{ url_for('graph') }}" class="button">View graph</a>
+  <div class="title">Temperature</div>
+
+  <div class="content">
+    <div class="radial-container">
+      <canvas id="temperatureChart" width="200" height="200"></canvas>
     </div>
+
+    <div class="second-container">
+      <div class="house-temp">
+        <span class="comment">House Temp</span>
+        <span>0°</span>
+      </div>
+
+      <span class="separator"></span>
+
+      <div class="house-humidity">
+        <span class="comment">House Humidity</span>
+        <span>0%</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="button-container">
+    <span>
+      <a class="active">main</a>
+    </span>
+    <span>
+      <a>graph</a>
+    </span>
+    <span>
+      <a>pump control</a>
+    </span>
   </div>
 
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
