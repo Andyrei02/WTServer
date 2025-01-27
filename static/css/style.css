@@ -15,6 +15,11 @@ body {
   margin-top: 20px;
 }
 
+.comment {
+  color: #8B949E;
+  font-size: 15px;
+}
+
 .content {
   display: flex;
   flex-direction: column;
@@ -41,6 +46,8 @@ body {
 .house-humidity {
   display: flex;
   flex-direction: column;
+  text-align: center;
+  font-size: 24px;
 }
 
 .radial-container {
@@ -49,40 +56,11 @@ body {
   padding: 0px 0 30px 0;
   margin: 0 10%;
   border-radius: 20%;
-  box-shadow: 0px 4px 10px rgba(33, 38, 43, 0.3);
+  box-shadow: 4px 4px 15px 6px rgb(0 0 0 / 20%);
 }
 
 canvas {
   display: block;
   margin: 0 auto;
   position: relative;
-}
-
-.button-container {
-  margin: 10px;
-  padding: 5px;
-  display: flex;
-  justify-content: space-around;
-  align-items: center;
-  background-color: #22272B;
-  border-radius: 20px;
-  width: fit-content;
-}
-
-.button-container span a {
-  padding: 8px 16px;
-  text-decoration: none;
-  font-size: 14px;
-  color: #8B949E;
-  border-radius: 15px;
-  transition: all 0.3s ease;
-}
-
-.button-container span a.active {
-  background-color: #6E44FF;
-  color: white;
-}
-
-.button-container span a:hover {
-  color: white;
 }

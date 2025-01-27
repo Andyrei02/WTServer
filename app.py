@@ -62,13 +62,6 @@ def get_monthly_stats(year, month):
     response = [{"day": t.day, "temperature": t.temperature} for t in data]
     return jsonify(response)
 
-@app.route('/history')
-def history():
-    # Извлечь все данные из базы данных, отсортированные по времени
-    data = TemperatureData.query.order_by(TemperatureData.timestamp.desc()).all()
-
-    # Передать данные в шаблон
-    return render_template('history.html', data=data)
 
 @app.route('/graph')
 def graph():
@@ -109,10 +102,14 @@ def graph():
 
     return render_template('graph.html', graph_data=graph_data)
 
+@app.route('/pump')
+def pump():
+    return render_template('pump.html')
+
 # Основная страница для отображения температуры
 @app.route('/')
-def index():
-    return render_template('index.html')
+def home():
+    return render_template('home.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

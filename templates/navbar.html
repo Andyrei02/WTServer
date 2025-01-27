@@ -1,0 +1,36 @@
+<style>
+.button-container {
+    margin: 10px;
+    padding: 12px 10px 10px 10px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background-color: #22272B;
+    border-radius: 20px;
+    width: fit-content;
+}
+    
+.button-container .button {
+    padding: 8px 16px;
+    text-decoration: none;
+    font-size: 20px;
+    color: #8B949E;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+    
+.button-container .button.active {
+    background-color: #6E44FF;
+    color: white;
+}
+    
+.button-container .button:hover {
+    color: white;
+}      
+</style>
+<div class="button-container">
+    <a href="{{ url_for('home') }}" class="button {% if request.path == '/' %}active{% endif %}">main</a>
+    <a href="{{ url_for('graph') }}" class="button {% if request.path == '/graph' %}active{% endif %}">graph</a>
+    <a href="{{ url_for('pump') }}" class="button {% if request.path == '/pump' %}active{% endif %}">pump control</a>
+</div>
