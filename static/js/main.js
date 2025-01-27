@@ -64,14 +64,22 @@ function updateTemperature(temperature, timestamp) {
   temperatureChart.update();
 }
 
+function updateSecondContainer(temperature, humidity) {
+  const temp_span = document.getElementById('HTempID');
+  const humidity_span = document.getElementById('HHumidityID');
+  temp_span.textContent = temperature;
+  humidity_span.textContent = humidity;
+}
+
 async function fetchTemperature() {
     try {
         const response = await fetch('/current_temp');
         const data = await response.json();
 
-        if (data.temperature !== null) {
-            updateTemperature(data.temperature, data.timestamp); // Обновление индикатора
-        } else {
+        if (data.temperature_in_tank !== null) {
+            updateTemperature(data.temperature_in_tank, data.timestamp); // Обновление индикатора
+            updateSecondContainer(data.temperature_in_house, data.humidity_in_house);
+          } else {
             console.log('Нет данных для температуры');
         }
     } catch (error) {

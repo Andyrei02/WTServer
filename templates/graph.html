@@ -1,121 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Temperature Graph</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/graph.css') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Temperature Graphs</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+<body class="bg-dark text-light">
 
-<body>
-    
-    <h1>Temperature Graph</h1>
-    <div class="tabs">
-        <div class="tab active" onclick="showTab('today')">Today</div>
-        <div class="tab" onclick="showTab('month')">Month</div>
-        <div class="tab" onclick="showTab('year')">Year</div>
-    </div>
-    <div id="today" class="tab-content">
-        <canvas id="todayChart"></canvas>
-    </div>
-    <div id="month" class="tab-content" style="display: none;">
-        <canvas id="monthChart"></canvas>
-    </div>
-    <div id="year" class="tab-content" style="display: none;">
-        <canvas id="yearChart"></canvas>
-    </div>
+<div class="container text-center mt-5">
+  <h1 class="mb-4">Sensor Data Graphs</h1>
 
-    <script>
-        // Табы
-        function showTab(tabId) {
-            // Скрыть все графики
-            document.querySelectorAll('.tab-content').forEach(tab => tab.style.display = 'none');
-            // Показать выбранный график
-            document.querySelector(`#${tabId}`).style.display = 'block';
-            // Обновить активную вкладку
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            event.target.classList.add('active');
-        }
-    
-        // Данные для графика Today
-        const todayLabels = {{ graph_data['today']['labels'] | tojson }};
-        const todayTemperatures = {{ graph_data['today']['temperatures'] | tojson }};
-        const todayCtx = document.getElementById('todayChart').getContext('2d');
-        new Chart(todayCtx, {
-            type: 'line',
-            data: {
-                labels: todayLabels,
-                datasets: [{
-                    label: 'Temperature (°C)',
-                    data: todayTemperatures,
-                    borderColor: '#5dade2',
-                    backgroundColor: 'rgba(93, 173, 226, 0.2)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true }
-                }
-            }
-        });
-    
-        // Данные для графика Month
-        const monthLabels = {{ graph_data['month']['labels'] | tojson }};
-        const monthTemperatures = {{ graph_data['month']['temperatures'] | tojson }};
-        const monthCtx = document.getElementById('monthChart').getContext('2d');
-        new Chart(monthCtx, {
-            type: 'line',
-            data: {
-                labels: monthLabels,
-                datasets: [{
-                    label: 'Temperature (°C)',
-                    data: monthTemperatures,
-                    borderColor: '#76c7c0',
-                    backgroundColor: 'rgba(118, 199, 192, 0.2)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true }
-                }
-            }
-        });
-    
-        // Данные для графика Year
-        const yearLabels = {{ graph_data['year']['labels'] | tojson }};
-        const yearTemperatures = {{ graph_data['year']['temperatures'] | tojson }};
-        const yearCtx = document.getElementById('yearChart').getContext('2d');
-        new Chart(yearCtx, {
-            type: 'line',
-            data: {
-                labels: yearLabels,
-                datasets: [{
-                    label: 'Temperature (°C)',
-                    data: yearTemperatures,
-                    borderColor: '#f4b400',
-                    backgroundColor: 'rgba(244, 180, 0, 0.2)',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true,
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: true }
-                }
-            }
-        });
-    </script>
-    
+  <div class="mb-4">
+    <button class="btn btn-primary" onclick="switchDay(-1)">Previous Day</button>
+    <button class="btn btn-primary" onclick="switchDay(1)">Next Day</button>
+  </div>
+
+  <canvas id="temperatureTankChart" class="mb-5"></canvas>
+  <canvas id="temperatureHouseChart" class="mb-5"></canvas>
+  <canvas id="humidityChart"></canvas>
+</div>
+
+<script>
+  const today = new Date();
+  let currentDate = today.toISOString().split('T')[0];
+
+  async function fetchData(date) {
+    const response = await fetch(`/data/${date}`);
+    return response.json();
+  }
+
+  async function updateGraphs(date) {
+    const data = await fetchData(date);
+
+    const timestamps = data.map(entry => entry.timestamp);
+    const tempTank = data.map(entry => entry.temperature_in_tank);
+    const tempHouse = data.map(entry => entry.temperature_in_house);
+    const humidity = data.map(entry => entry.humidity_in_house);
+
+    // Update charts
+    tankChart.data.labels = timestamps;
+    tankChart.data.datasets[0].data = tempTank;
+    tankChart.update();
+
+    houseChart.data.labels = timestamps;
+    houseChart.data.datasets[0].data = tempHouse;
+    houseChart.update();
+
+    humidityChart.data.labels = timestamps;
+    humidityChart.data.datasets[0].data = humidity;
+    humidityChart.update();
+  }
+
+  function switchDay(offset) {
+    const date = new Date(currentDate);
+    date.setDate(date.getDate() + offset);
+    currentDate = date.toISOString().split('T')[0];
+    updateGraphs(currentDate);
+  }
+
+  // Create charts
+  const tankChart = new Chart(document.getElementById('temperatureTankChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{ label: 'Temperature in Tank', data: [], borderColor: 'red', borderWidth: 2 }]
+    }
+  });
+
+  const houseChart = new Chart(document.getElementById('temperatureHouseChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{ label: 'Temperature in House', data: [], borderColor: 'blue', borderWidth: 2 }]
+    }
+  });
+
+  const humidityChart = new Chart(document.getElementById('humidityChart'), {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{ label: 'Humidity in House', data: [], borderColor: 'green', borderWidth: 2 }]
+    }
+  });
+
+  // Initial graph load
+  updateGraphs(currentDate);
+</script>
 </body>
 </html>
