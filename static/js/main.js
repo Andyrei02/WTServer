@@ -67,8 +67,8 @@ function updateTemperature(temperature, timestamp) {
 function updateSecondContainer(temperature, humidity) {
   const temp_span = document.getElementById('HTempID');
   const humidity_span = document.getElementById('HHumidityID');
-  temp_span.textContent = temperature;
-  humidity_span.textContent = humidity;
+  temp_span.textContent = temperature + '°';
+  humidity_span.textContent = humidity + '%';
 }
 
 async function fetchTemperature() {

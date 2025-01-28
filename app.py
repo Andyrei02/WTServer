@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 app = Flask(__name__)
@@ -29,11 +29,12 @@ with app.app_context():
 def get_current_temp():
     latest = SensorData.query.order_by(SensorData.timestamp.desc()).first()
     if latest:
+        ajusted_timestamp = latest.timestamp + timedelta(hours=2)
         return jsonify({
             "temperature_in_tank": latest.temperature_in_tank,
             "temperature_in_house": latest.temperature_in_house,
             "humidity_in_house": latest.humidity_in_house,
-            "timestamp": latest.timestamp.strftime('%Y-%m-%d %H:%M:%S')
+            "timestamp": ajusted_timestamp.strftime('%Y-%m-%d %H:%M:%S')
         })
     return jsonify({
         "temperature_in_tank": None,
