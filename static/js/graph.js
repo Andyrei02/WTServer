@@ -8,6 +8,8 @@ async function fetchData(date) {
 
 async function updateGraphs(date) {
   const data = await fetchData(date);
+  const date_label = document.getElementById('date_label');
+  date_label.textContent = date
 
   const timestamps = data.map(entry => entry.timestamp);
   const tempTank = data.map(entry => entry.temperature_in_tank);
