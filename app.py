@@ -87,7 +87,7 @@ def receive_data():
             # elif data['temperature_in_tank'] <= 35:
             #     pump_state = "stop"
             # else:
-            pump_state = "stop"
+            pump_state = "start"
 
             # Clear the cache
             data_cache.clear()
