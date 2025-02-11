@@ -92,7 +92,6 @@ def receive_data():
             # Clear the cache
             data_cache.clear()
 
-            response = decide_pump_action(temperature)
             return jsonify({"command": pump_state})
         return jsonify({"message": "Partial data received, waiting for more"}), 200
     except Exception as e:
