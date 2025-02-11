@@ -9,8 +9,30 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///temperature.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+temp_to_start = 45.0
+temp_to_stop = 35.0
+run_interval = 15  # Minutes to run
+pause_interval = 60  # Minutes to pause
+pump_running = False
+
+
 # Temporary cache for storing partial data
 data_cache = {}
+
+
+def decide_pump_action(temperature):
+    global pump_running
+    
+    if temperature >= temp_to_start and not pump_running:
+        pump_running = True
+        return {"command": "start", "temp_to_start": temp_to_start, "temp_to_stop": temp_to_stop,
+                "run_interval": run_interval, "pause_interval": pause_interval}
+    elif temperature <= temp_to_stop and pump_running:
+        pump_running = False
+        return {"command": "stop", "temp_to_start": temp_to_start, "temp_to_stop": temp_to_stop,
+                "run_interval": run_interval, "pause_interval": pause_interval}
+    return {"command": "none"}
+
 
 # Модель для хранения температуры
 class SensorData(db.Model):
@@ -20,9 +42,11 @@ class SensorData(db.Model):
     humidity_in_house = db.Column(db.Float, nullable=True)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+
 # Создание базы данных
 with app.app_context():
     db.create_all()
+
 
 # Эндпоинт для получения текущих данных
 @app.route('/current_temp', methods=['GET'])
@@ -42,6 +66,7 @@ def get_current_temp():
         "humidity_in_house": None,
         "timestamp": None
     })
+
 
 # Эндпоинт для сохранения данных от ESP32
 @app.route('/data', methods=['POST'])
@@ -76,12 +101,14 @@ def receive_data():
             # Clear the cache
             data_cache.clear()
 
-            return jsonify({"message": "Data saved successfully"}), 201
+            response = decide_pump_action(temperature)
+            return jsonify(response)
 
         return jsonify({"message": "Partial data received, waiting for more"}), 200
     except Exception as e:
         app.logger.error(f"Error processing data: {e}")
         return jsonify({"error": "Internal server error"}), 500
+
 
 @app.route('/data/<string:date>', methods=['GET'])
 def get_data_by_day(date):
@@ -110,18 +137,22 @@ def get_data_by_day(date):
         app.logger.error(f"Error fetching data: {e}")
         return jsonify({"error": "Internal server error"}), 500
 
+
 @app.route('/graph')
 def graph():
     return render_template('graph.html')
+
 
 @app.route('/pump')
 def pump():
     return render_template('pump.html')
 
+
 # Основная страница для отображения температуры
 @app.route('/')
 def home():
     return render_template('home.html')
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
