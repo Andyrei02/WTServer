@@ -82,7 +82,7 @@ def receive_data():
             db.session.commit()
             
             print(f"Received temperature: {data['temperature_in_tank']}°C")
-            if data['temperature_in_tank'] >= 50:
+            if data['temperature_in_tank'] >= 45:
                 pump_state = "start"
             elif data['temperature_in_tank'] <= 35:
                 pump_state = "stop"
