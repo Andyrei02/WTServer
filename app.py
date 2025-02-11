@@ -82,13 +82,12 @@ def receive_data():
             db.session.commit()
             
             print(f"Received temperature: {data['temperature_in_tank']}°C")
-            pump_state = "start"
-            # if data['temperature_in_tank'] >= 45:
-            #     pump_state = "start"
-            # elif data['temperature_in_tank'] <= 35:
-            #     pump_state = "stop"
-            # else:
-            #     pump_state = "stop"
+            if data['temperature_in_tank'] >= 55:
+                pump_state = "start"
+            elif data['temperature_in_tank'] <= 35:
+                pump_state = "stop"
+            else:
+                pump_state = "stop"
 
             # Clear the cache
             data_cache.clear()
