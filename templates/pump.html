@@ -4,8 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Temperature</title>
+
+    <script>
+        function togglePump() {
+            fetch('/pump', {method: 'POST'})
+            .then(response => response.text())
+            .then(state => document.getElementById('status').innerText = 'Состояние: ' + state);
+        }
+    </script>
 </head>
 <body>
+
+    <h1>Управление насосом</h1>
+    <p id="status">Состояние: {{ pump_state }}</p>
+    <button onclick="togglePump()">Вкл/Выкл</button>
+
     {% include 'navbar.html' %}
 </body>
 </html>

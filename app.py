@@ -132,9 +132,14 @@ def graph():
     return render_template('graph.html')
 
 
-@app.route('/pump')
+@app.route('/pump', methods=['GET', 'POST'])
 def pump():
-    return render_template('pump.html')
+    global pump_state
+    print(pump_state)
+    if request.method == 'POST':
+        pump_state = "stop" if pump_state == "start" else "start"
+        return pump_state  # Возвращаем новое состояние
+    return render_template('pump.html', pump_state=pump_state)
 
 
 # Основная страница для отображения температуры
