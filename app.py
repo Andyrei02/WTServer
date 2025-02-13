@@ -87,7 +87,6 @@ def receive_data():
             # elif data['temperature_in_tank'] <= 35:
             #     pump_state = "stop"
             # else:
-            pump_state = "start"
 
             # Clear the cache
             data_cache.clear()
@@ -135,7 +134,7 @@ def graph():
 @app.route('/pump', methods=['GET', 'POST'])
 def pump():
     global pump_state
-    print(pump_state)
+    print(f'pump status: {pump_state}')
     if request.method == 'POST':
         pump_state = "stop" if pump_state == "start" else "start"
         return pump_state  # Возвращаем новое состояние
