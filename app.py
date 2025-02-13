@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
 
+from config import Config
+
 
 app = Flask(__name__)
 # Настройка базы данных
@@ -10,6 +12,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 pump_state = "stop"
+start_temp = 45.0  # Температура для запуска управления
+stop_temp = 35.0   # Температура для остановки насоса
+pump_start_time = None  # Время начала работы насоса
+last_pump_time = None  # Время последнего включения насоса
+
 
 
 # Temporary cache for storing partial data
@@ -48,7 +55,28 @@ def get_current_temp():
         "humidity_in_house": None,
         "timestamp": None
     })
+    
 
+def temp_check(temperature):
+    global pump_state, pump_start_time, last_pump_time
+    
+    # Проверка температуры для запуска
+    if temperature >= start_temp and pump_state == "stop":
+        if last_pump_time is None or (current_time - last_pump_time) >= 30 * 60:
+            pump_state = "start"
+            pump_start_time = current_time
+            last_pump_time = current_time
+    
+    # Проверка времени работы насоса
+    if pump_state == "start" and pump_start_time:
+        if (current_time - pump_start_time) >= 15 * 60:
+            pump_state = "stop"
+            pump_start_time = None
+    
+    # Проверка температуры для остановки
+    if temperature < stop_temp:
+        pump_state = "stop"
+        pump_start_time = None
 
 # Эндпоинт для сохранения данных от ESP32
 @app.route('/data', methods=['POST'])
@@ -80,14 +108,9 @@ def receive_data():
             )
             db.session.add(entry)
             db.session.commit()
-            
             print(f"Received temperature: {data['temperature_in_tank']}°C")
-            # if data['temperature_in_tank'] >= 55:
-            #     pump_state = "start"
-            # elif data['temperature_in_tank'] <= 35:
-            #     pump_state = "stop"
-            # else:
 
+            temp_check(data['temperature_in_tank'])
             # Clear the cache
             data_cache.clear()
 
@@ -98,37 +121,37 @@ def receive_data():
         return jsonify({"error": "Internal server error"}), 500
 
 
-@app.route('/data/<string:date>', methods=['GET'])
-def get_data_by_day(date):
-    try:
-        # Parse the date
-        selected_date = datetime.strptime(date, '%Y-%m-%d').date()
-        data = SensorData.query.filter(
-            db.func.date(SensorData.timestamp) == selected_date
-        ).all()
+# @app.route('/data/<string:date>', methods=['GET'])
+# def get_data_by_day(date):
+#     try:
+#         # Parse the date
+#         selected_date = datetime.strptime(date, '%Y-%m-%d').date()
+#         data = SensorData.query.filter(
+#             db.func.date(SensorData.timestamp) == selected_date
+#         ).all()
 
-        # Convert data to a list of dictionaries
-        result = [
-            {
-                "timestamp": entry.timestamp.strftime('%H:%M:%S'),
-                "temperature_in_tank": entry.temperature_in_tank,
-                "temperature_in_house": entry.temperature_in_house,
-                "humidity_in_house": entry.humidity_in_house,
-            }
-            for entry in data
-        ]
+#         # Convert data to a list of dictionaries
+#         result = [
+#             {
+#                 "timestamp": entry.timestamp.strftime('%H:%M:%S'),
+#                 "temperature_in_tank": entry.temperature_in_tank,
+#                 "temperature_in_house": entry.temperature_in_house,
+#                 "humidity_in_house": entry.humidity_in_house,
+#             }
+#             for entry in data
+#         ]
 
-        return jsonify(result)
-    except ValueError:
-        return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
-    except Exception as e:
-        app.logger.error(f"Error fetching data: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+#         return jsonify(result)
+#     except ValueError:
+#         return jsonify({"error": "Invalid date format. Use YYYY-MM-DD."}), 400
+#     except Exception as e:
+#         app.logger.error(f"Error fetching data: {e}")
+#         return jsonify({"error": "Internal server error"}), 500
 
 
 @app.route('/graph')
 def graph():
-    return render_template('graph.html')
+    return render_template('home.html')
 
 
 @app.route('/pump', methods=['GET', 'POST'])
