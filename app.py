@@ -57,6 +57,7 @@ def get_current_temp():
 
 def temp_check(temperature):
     global pump_state, pump_start_time, last_pump_time
+    current_time = time.time()
     
     # Проверка температуры для запуска
     if temperature >= start_temp and pump_state == "stop":
