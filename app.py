@@ -84,36 +84,44 @@ def receive_data():
     try:
         # Get JSON from request
         data = request.get_json()
+        print(f"Received raw JSON: {data}")  # Debugging
+
         if not data or 'source' not in data:
             return jsonify({"error": "Missing 'source' field"}), 400
         
-        # Validate data
         source = data['source']
+
+        # Validate ESP32 temperature data
         if source == "esp32_tank" and 'temperature_in_tank' in data:
             data_cache['temperature_in_tank'] = data['temperature_in_tank']
+            print(f"Stored temperature_in_tank: {data_cache['temperature_in_tank']}")  # Debugging
         elif source == "raspberry_pi_home" and 'temperature_in_house' in data and 'humidity_in_house' in data:
             data_cache['temperature_in_house'] = data['temperature_in_house']
             data_cache['humidity_in_house'] = data['humidity_in_house']
+            print(f"Stored temperature_in_house: {data_cache['temperature_in_house']}")  # Debugging
         else:
             return jsonify({"error": "Invalid or incomplete data for source"}), 400
 
-        # Check if all required fields are available
-        if all(key in data_cache for key in ['temperature_in_tank', 'temperature_in_house', 'humidity_in_house']):
-            # Insert into database
-            entry = SensorData(
-                temperature_in_tank=data_cache['temperature_in_tank'],
-                temperature_in_house=data_cache['temperature_in_house'],
-                humidity_in_house=data_cache['humidity_in_house']
-            )
-            db.session.add(entry)
-            db.session.commit()
-            print(f"Received temperature: {data['temperature_in_tank']}°C")
+        # Ensure all data is available before processing
+        if 'temperature_in_tank' in data_cache:
+            print(f"Processing temperature_in_tank: {data_cache['temperature_in_tank']}")  # Debugging
+            temp_check(data_cache['temperature_in_tank'])  # Use stored value instead of data['temperature_in_tank']
 
-            temp_check(data['temperature_in_tank'])
-            # Clear the cache
+            # Insert into database if all values are available
+            if all(key in data_cache for key in ['temperature_in_tank', 'temperature_in_house', 'humidity_in_house']):
+                entry = SensorData(
+                    temperature_in_tank=data_cache['temperature_in_tank'],
+                    temperature_in_house=data_cache['temperature_in_house'],
+                    humidity_in_house=data_cache['humidity_in_house']
+                )
+                db.session.add(entry)
+                db.session.commit()
+                print("Data committed to database.")  # Debugging
+
+            # Clear the cache after processing
             data_cache.clear()
-
             return jsonify({"command": pump_state})
+        
         return jsonify({"message": "Partial data received, waiting for more"}), 200
     except Exception as e:
         app.logger.error(f"Error processing data: {e}")
