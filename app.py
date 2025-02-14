@@ -1,7 +1,5 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-
 from datetime import datetime, timedelta
 import time
 
@@ -16,8 +14,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///temperature.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
-migrate = Migrate(app, db)
 
 pump_state = "stop"
 start_temp = 38.0  # Температура для запуска управления
@@ -37,7 +33,7 @@ class SensorData(db.Model):
     temperature_in_tank = db.Column(db.Float, nullable=True)
     temperature_in_house = db.Column(db.Float, nullable=True)
     humidity_in_house = db.Column(db.Float, nullable=True)
-    timestamp = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # Создание базы данных
@@ -66,11 +62,11 @@ def get_current_temp():
     
 
 def temp_check(temperature):
-    global pump_state, pump_start_time, last_pump_time, start_temp, stop_temp
+    global pump_state, pump_start_time, last_pump_time
     current_time = time.time()
     
     # Проверка температуры для запуска
-    if temperature > start_temp and pump_state == "stop":
+    if temperature >= start_temp and pump_state == "stop":
         if last_pump_time is None or (current_time - last_pump_time) >= 30 * 60:
             pump_state = "start"
             pump_start_time = current_time
@@ -101,6 +97,7 @@ def receive_data():
         
         source = data['source']
 
+        # Validate ESP32 temperature data
         if source == "esp32_tank" and 'temperature_in_tank' in data:
             data_cache['temperature_in_tank'] = data['temperature_in_tank']
             app.logger.info(f"Stored temperature_in_tank: {data_cache['temperature_in_tank']}")
@@ -108,31 +105,30 @@ def receive_data():
             data_cache['temperature_in_house'] = data['temperature_in_house']
             data_cache['humidity_in_house'] = data['humidity_in_house']
             app.logger.info(f"Stored temperature_in_house: {data_cache['temperature_in_house']}")
-            app.logger.info(f"Stored humidity_in_house: {data_cache['humidity_in_house']}")
         else:
-            return jsonify({"error": "Invalid data"}), 400
+            return jsonify({"error": "Invalid or incomplete data for source"}), 400
 
-        # Process and store immediately if any temperature data is present
-        temperature_tank = data_cache.get('temperature_in_tank')
-        temperature_house = data_cache.get('temperature_in_house')
-        humidity_house = data_cache.get('humidity_in_house')
-        
-        if temperature_house:
-            temp_check(temperature_tank)
-        
-        entry = SensorData(
-                    temperature_in_tank=temperature_tank,
-                    temperature_in_house=temperature_house,
-                    humidity_in_house=humidity_house
+        # Ensure all data is available before processing
+        if 'temperature_in_tank' in data_cache:
+            app.logger.info(f"Processing temperature_in_tank: {data_cache['temperature_in_tank']}")
+            temp_check(data_cache['temperature_in_tank'])  # Use stored value instead of data['temperature_in_tank']
+
+            # Insert into database if all values are available
+            if all(key in data_cache for key in ['temperature_in_tank', 'temperature_in_house', 'humidity_in_house']):
+                entry = SensorData(
+                    temperature_in_tank=data_cache['temperature_in_tank'],
+                    temperature_in_house=data_cache['temperature_in_house'],
+                    humidity_in_house=data_cache['humidity_in_house']
                 )
-        db.session.add(entry)
-        db.session.commit()
-        app.logger.info("Data committed to database.")
+                db.session.add(entry)
+                db.session.commit()
+                app.logger.info("Data committed to database.")  # Debugging
+
+            # Clear the cache after processing
+            data_cache.clear()
+            return jsonify({"command": pump_state})
         
-        data_cache.clear()
-        
-        return jsonify({"command": pump_state})
-    
+        return jsonify({"message": "Partial data received, waiting for more"}), 200
     except Exception as e:
         app.logger.error(f"Error processing data: {e}")
         return jsonify({"error": "Internal server error"}), 500
@@ -188,4 +184,4 @@ def home():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, threaded=True)
+    app.run(host='0.0.0.0', port=5000)
