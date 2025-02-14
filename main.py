@@ -66,11 +66,11 @@ def get_current_temp():
     
 
 def temp_check(temperature):
-    global pump_state, pump_start_time, last_pump_time
+    global pump_state, pump_start_time, last_pump_time, start_temp, stop_temp
     current_time = time.time()
     
     # Проверка температуры для запуска
-    if temperature >= start_temp and pump_state == "stop":
+    if temperature > start_temp and pump_state == "stop":
         if last_pump_time is None or (current_time - last_pump_time) >= 30 * 60:
             pump_state = "start"
             pump_start_time = current_time
@@ -117,7 +117,7 @@ def receive_data():
         temperature_house = data_cache.get('temperature_in_house')
         humidity_house = data_cache.get('humidity_in_house')
         
-        if temperature_house is not None:
+        if temperature_house:
             temp_check(temperature_tank)
         
         entry = SensorData(
