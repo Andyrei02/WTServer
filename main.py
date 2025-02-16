@@ -117,7 +117,7 @@ def receive_data():
         temperature_house = data_cache.get('temperature_in_house')
         humidity_house = data_cache.get('humidity_in_house')
         
-        if temperature_house:
+        if temperature_tank:
             temp_check(temperature_tank)
         
         entry = SensorData(
