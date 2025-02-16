@@ -73,17 +73,21 @@ function updateSecondContainer(temperature, humidity) {
 
 async function fetchTemperature() {
     try {
-        const response = await fetch('/current_temp');
-        const data = await response.json();
+      const response = await fetch('/current_temp');
+      const data = await response.json();
 
-        if (data.temperature_in_tank !== null) {
-            updateTemperature(data.temperature_in_tank, data.timestamp); // Обновление индикатора
-            updateSecondContainer(data.temperature_in_house, data.humidity_in_house);
-          } else {
-            console.log('Нет данных для температуры');
-        }
+      if (data.temperature_in_tank !== null) {
+        updateTemperature(data.temperature_in_tank, data.timestamp); // Обновление индикатора
+      } else {
+        console.log('Нет данных для температуры бочки');
+      }
+      if (data.temperature_in_house !== null) {
+        updateSecondContainer(data.temperature_in_house, data.humidity_in_house);
+      } else {
+        console.log('Нет данных для температуры и влажности дома');
+      }
     } catch (error) {
-        console.error('Ошибка загрузки температуры:', error);
+      console.error('Ошибка загрузки температуры:', error);
     }
 }
 

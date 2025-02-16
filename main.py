@@ -94,7 +94,6 @@ def receive_data():
     try:
         # Get JSON from request
         data = request.get_json()
-        app.logger.info(f"Received raw JSON: {data}")
 
         if not data or 'source' not in data:
             return jsonify({"error": "Missing 'source' field"}), 400
