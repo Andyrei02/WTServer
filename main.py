@@ -20,8 +20,8 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 pump_state = "stop"
-start_temp = 38.0  # Температура для запуска управления
-stop_temp = 35.0   # Температура для остановки насоса
+start_temp = 50.0  # Температура для запуска управления
+stop_temp = 45.0   # Температура для остановки насоса
 pump_start_time = None  # Время начала работы насоса
 last_pump_time = None  # Время последнего включения насоса
 
