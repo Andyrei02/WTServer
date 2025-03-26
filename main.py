@@ -90,7 +90,7 @@ def temp_check(temperature):
 # Эндпоинт для сохранения данных от ESP32
 @app.route('/data', methods=['POST'])
 def receive_data():
-    global pump_state
+    global pump_state, data_cache
     try:
         # Get JSON from request
         data = request.get_json()
@@ -119,16 +119,16 @@ def receive_data():
         if temperature_tank:
             temp_check(temperature_tank)
         
-        entry = SensorData(
-                    temperature_in_tank=temperature_tank,
-                    temperature_in_house=temperature_house,
-                    humidity_in_house=humidity_house
-                )
-        db.session.add(entry)
-        db.session.commit()
-        app.logger.info("Data committed to database.")
-        
-        data_cache.clear()
+            entry = SensorData(
+                        temperature_in_tank=temperature_tank,
+                        temperature_in_house=temperature_house,
+                        humidity_in_house=humidity_house
+                    )
+            db.session.add(entry)
+            db.session.commit()
+            app.logger.info("Data committed to database.")
+            
+            data_cache.clear()
         
         return jsonify({"command": pump_state})
     
@@ -177,7 +177,6 @@ def pump():
     if request.method == 'POST':
         pump_state = "stop" if pump_state == "start" else "start"
         return pump_state  # Возвращаем новое состояние
-    print(start_temp)
     return render_template('pump.html', pump_state=pump_state, start_temp=start_temp, stop_temp=stop_temp)
 
 
