@@ -66,7 +66,7 @@ def get_current_temp():
     
 
 def temp_check(temperature):
-    global pump_state, pump_start_time, last_pump_time, start_temp, stop_tempflfla
+    global pump_state, pump_start_time, last_pump_time, start_temp, stop_temp
     current_time = time.time()
     
     # Проверка температуры для запуска
@@ -172,12 +172,13 @@ def graph():
 
 @app.route('/pump', methods=['GET', 'POST'])
 def pump():
-    global pump_state
+    global pump_state, start_temp, stop_temp
     app.logger.info(f'pump status: {pump_state}')
     if request.method == 'POST':
         pump_state = "stop" if pump_state == "start" else "start"
         return pump_state  # Возвращаем новое состояние
-    return render_template('pump.html', pump_state=pump_state)
+    print(start_temp)
+    return render_template('pump.html', pump_state=pump_state, start_temp=start_temp, stop_temp=stop_temp)
 
 
 # Основная страница для отображения температуры
